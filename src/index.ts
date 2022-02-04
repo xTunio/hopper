@@ -17,11 +17,17 @@ const ChatMessage = require('prismarine-chat')(connectionOptions.version)
 const { MessageBuilder } = require('prismarine-chat')(connectionOptions.version)
 const mcData = require('minecraft-data')(connectionOptions.version)
 
+const fishingBot = {
+    enabled: true,
+    bobberEntityId: mcData.entitiesArray.find(x => x.name === 'fishing_bobber').id,
+    bobbers: new Set(),
+    bobCount: 0,
+    deltaThreshhold: -1150 // less than -1500 for legit I guess
+}
+
 logger.proxy("starting proxy instance...");
 
-
 const srv = createServer(instanceOptions(connectionOptions.version))
-
 
 srv.on('listening', function () {
     logger.proxy(`Server listening on 127.0.0.1`) //TODO: fix later
@@ -98,6 +104,34 @@ srv.on('login', function (client) {
             client.compressionThreshold = data.threshold
         } // Set compression
 
+        //check if spawned entity is fishing bobber
+        if (meta.name === 'spawn_entity' && data.type === fishingBot.bobberEntityId) {
+            console.log(data)
+            if(fishingBot.enabled){
+                    fishingBot.bobbers.add(data.entityId)
+                    // console.log(fishingBot.bobbers)
+                    logger.plugin(`[Fishing] added new bobber to tracking list: ${data.entityId}`)
+            }
+        }
+
+        if (meta.name === 'entity_move_look'){
+            if(fishingBot.bobbers.has(data.entityId)){
+                // console.log(data.dY)
+                fishingBot.bobCount++
+                //TODO: rewrite it as some async function, not expression
+                (async () => {
+                    if(fishingBot.bobCount>=20 && data.dY<= fishingBot.deltaThreshhold){
+                        logger.plugin(`[Fishing] Taking out bobber, because of position (dY: ${data.dY})`)
+                        targetClient.write('use_item', {hand: 0})
+                        fishingBot.bobCount = 0;
+                        if(fishingBot.bobbers.size >= 10){
+                            fishingBot.bobbers.clear();
+                            logger.plugin('[Fishing] Cleared bobbers list')
+                        }
+                    }
+                })()
+            }
+        }
     })
 
 
