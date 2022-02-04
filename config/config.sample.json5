@@ -1,0 +1,19 @@
+{
+    "connectionOptions": {
+        "host": "example.com",
+        "port": 25565,
+        "version": "1.18.1"
+    },
+    "accounts": [
+        {
+            "auth": "mojang",
+            "username": "examplemail@example.com",
+            "password": "password"
+        },
+        {
+            "auth": "microsoft",
+            "username": "examplemail2@example.com",
+            "password": "password2"
+        }
+    ]
+}
