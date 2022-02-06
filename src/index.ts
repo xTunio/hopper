@@ -1,16 +1,8 @@
 import { states, createServer, createClient, Client, ServerClient } from 'minecraft-protocol'
-import * as json5 from 'json5'
-import { readFileSync } from 'node:fs'
 import { instanceOptions } from './lib/constants'
 import { logger } from './lib/logger'
-
-const config = json5.parse(readFileSync('./config/config.json5', 'utf8'))
-
-const connectionOptions = {
-    host: config.host || "localhost",
-    port: config.port || 25565,
-    version: config.version || "1.18.1",
-}
+import { commandHandler } from './lib/commandHandler'
+import { connectionOptions, proxyOptions, accounts } from './lib/options'
 
 
 const ChatMessage = require('prismarine-chat')(connectionOptions.version)
@@ -55,7 +47,7 @@ srv.on('login', function (client) {
     const targetClient = createClient({
         ...connectionOptions,
         // username: client.username,
-        ...config.accounts[0],
+        ...accounts[0],
         keepAlive: false,
         skipValidation: true
     })
@@ -71,14 +63,8 @@ srv.on('login', function (client) {
             if (!endedTargetClient) {
                 if (meta.name === 'chat') {
                     console.log(data);
-                    const message: string = data.message;
-                    if (message.indexOf("/,") === 0) {
-                        try{
-                            let evaled = eval(message.substring(3));
-                            logger.eval(evaled);
-                        } catch (e) {
-                            console.error(e);
-                        }
+                    if (data.message.indexOf(proxyOptions.prefix) === 0) {
+                        commandHandler(data.message, client);
                         return
                     }
                 }
