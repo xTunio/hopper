@@ -1,7 +1,6 @@
 import * as json5 from 'json5'
 import { readFileSync } from 'node:fs'
 const config = json5.parse(readFileSync('./config/config.json5', 'utf8'))
-console.log(config)
 
 export const connectionOptions = {
     host: "localhost",
