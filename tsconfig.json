@@ -6,12 +6,11 @@
         "target": "ESNext",
         "moduleResolution": "Node",
         "module": "CommonJS",
-        "rootDir": "./",
+        "rootDir": "./src",
         "removeComments": true,
         "pretty": true,
         "incremental": true,
-        "outDir": "./dist",
-
+        "outDir": "dist",
     },
     "include": [
         "src/index.ts",
